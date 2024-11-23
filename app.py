@@ -13,7 +13,7 @@ INFO = [
     "<div style='text-align: right; background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> Present",
     "<div style='text-align: right; background-color: blue; width: 20px; height: 20px; display: inline-block;'></div> Svara Only",
     "<div style='text-align: right; background-color: purple; width: 20px; height: 20px; display: inline-block;'></div> Vyanjana Only",
-    "<div style='text-align: right; background-color: pink; width: 20px; height: 20px; display: inline-block;'></div> Svara and Vyanjana",
+    "<div style='text-align: right; background-color: red; width: 20px; height: 20px; display: inline-block;'></div> Svara and Vyanjana",
     "",
     "",
     "",
@@ -24,8 +24,10 @@ INFO = [
 if "true_word" not in st.session_state:
     info = get_fixed_length(3)
     st.session_state.true_word = Word(info["word"])
-    st.session_state.shloka = info["shloka"]
+    st.session_state.shloka = info["shloka"].split("।")
+    st.session_state.shloka[0] += "।"
     st.session_state.synonyms = get_synonyms(info["word"])
+    print(st.session_state.synonyms)
     st.session_state.message = ""
 
 
@@ -60,7 +62,7 @@ cell_colors_dict = {
     CellStatus.ABSENT: "gray",
     CellStatus.SVARA_ONLY: "blue",
     CellStatus.VYANJANA_ONLY: "purple",
-    CellStatus.SVARA_AND_VYANJANA: "pink",
+    CellStatus.SVARA_AND_VYANJANA: "red",
 }
 
 
@@ -118,12 +120,30 @@ if not st.session_state.game_over:
             st.session_state.game_over = True
 
         if st.session_state.game_over:
-            st.session_state.message += f"The word was {true_word.word}.\n"
-            st.session_state.message += f" The shloka is: {st.session_state.shloka}.\n"
-            st.session_state.message += (
-                f" Synonyms: {', '.join(st.session_state.synonyms['synonyms'])}.\n"
-            )
+            st.session_state.message += f"## The word was {true_word.word}.\n"
+            st.session_state.message += " The shloka is: \n"
+            st.session_state.message += f"### {st.session_state.shloka[0]}\n"
+            st.session_state.message += f"### {st.session_state.shloka[1]}\n"
+            st.session_state.message += "## Synonyms\n"
+            print(st.session_state.synonyms)
+            st.session_state.message += ", ".join(st.session_state.synonyms["synonyms"])
 
         st.rerun()
 
-st.success(st.session_state.message)
+if st.session_state.game_over:
+    st.write(st.session_state.message)
+    if st.button("Play Again"):
+        st.session_state.current_row = 0
+        st.session_state.guesses = [
+            ["" for _ in range(word_length)] for _ in range(max_attempts)
+        ]
+        st.session_state.guess_status = [
+            [CellStatus.ABSENT for _ in range(word_length)] for _ in range(max_attempts)
+        ]
+        st.session_state.game_over = False
+        info = get_fixed_length(3)
+        st.session_state.true_word = Word(info["word"])
+        st.session_state.shloka = info["shloka"]
+        st.session_state.synonyms = get_synonyms(info["word"])
+        st.session_state.message = ""
+        st.rerun()
