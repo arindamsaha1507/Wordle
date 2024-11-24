@@ -7,7 +7,7 @@ from akshara import varnakaarya as vk
 
 from evaluate import CellStatus, Compare
 from word_processor import Word
-from dictionary import get_fixed_length, get_synonyms
+from dictionary import get_fixed_length, get_synonyms, is_word_in_dictionary
 
 
 INFO = [
@@ -16,7 +16,7 @@ INFO = [
     "<div style='background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> Akshara is present in the word but in the wrong position",
     "<div style='background-color: blue; width: 20px; height: 20px; display: inline-block;'></div> Only the Svara is present in the word",
     "<div style='background-color: purple; width: 20px; height: 20px; display: inline-block;'></div> At least one Vyanjana is present in the word",
-    "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> Svara and atleast one Vyanjana are present in thw word, but the Akshara is not",
+    "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> Svara and atleast one Vyanjana are present in the word, but the Akshara is not",
     "",
     "",
     "",
@@ -168,6 +168,16 @@ if not st.session_state.game_over:
         if len(guess_word.aksharas) != word_length:
             st.error(
                 f"Invalid guess! Your guess has {len(guess_word.aksharas)} Aksharas. Please guess a word with {word_length} Aksharas."
+            )
+            st.session_state.valid_guess = None
+
+            time.sleep(5)
+
+            st.rerun()
+
+        if not is_word_in_dictionary(guess_word.word):
+            st.error(
+                f"Invalid guess! The word {guess_word.word} is not in the amarakosha dictionary."
             )
             st.session_state.valid_guess = None
 
