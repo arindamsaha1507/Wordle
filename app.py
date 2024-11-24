@@ -17,7 +17,7 @@ INFO = [
     "<div style='background-color: green; width: 20px; height: 20px; display: inline-block;'></div> The Letter is in the correct position",
     "<div style='background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> The Letter is in the word, but in the wrong position",
     "<div style='background-color: gray; width: 20px; height: 20px; display: inline-block;'></div> The Letter is not in the word",
-    "So, a completely filled green cell means that the Akshara is in the right position of the word and a completely filled yellow cell means that the Akshara is present in the word but in the wrong position.",
+    "So, a completely filled green cell means the Akshara is present in the correct position and a completely filled yellow cell means the Akshara is present in another position.",
     "Additionally, there are 2 special cases of completely filled cells:",
     "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> The Svara and atleast one Vyanjana are present in the word, but none of them are in the the correct position",
     "<div style='background-color: darkblue; width: 20px; height: 20px; display: inline-block;'></div> The Svara and atleast one Vyanjana are in the correct position, but the Akshara is incorrect (Vyanjanas are either missing or extra or in the wrong order)",
