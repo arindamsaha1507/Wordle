@@ -1,5 +1,6 @@
 """Module to implement the Wordle game in Streamlit."""
 
+import time
 import streamlit as st
 from google.transliteration import transliterate_word
 from akshara import varnakaarya as vk
@@ -11,11 +12,11 @@ from dictionary import get_fixed_length, get_synonyms
 
 INFO = [
     "Colors:",
-    "<div style='text-align: right; background-color: green; width: 20px; height: 20px; display: inline-block;'></div> Correct",
-    "<div style='text-align: right; background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> Present",
-    "<div style='text-align: right; background-color: blue; width: 20px; height: 20px; display: inline-block;'></div> Svara Only",
-    "<div style='text-align: right; background-color: purple; width: 20px; height: 20px; display: inline-block;'></div> Vyanjana Only",
-    "<div style='text-align: right; background-color: red; width: 20px; height: 20px; display: inline-block;'></div> Svara and Vyanjana",
+    "<div style='background-color: green; width: 20px; height: 20px; display: inline-block;'></div> Akshara is correct and in the right position",
+    "<div style='background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> Akshara is correct but in the wrong position",
+    "<div style='background-color: blue; width: 20px; height: 20px; display: inline-block;'></div> Only the Svara is correct",
+    "<div style='background-color: purple; width: 20px; height: 20px; display: inline-block;'></div> At least one Vyanjana is correct",
+    "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> Svara and one Vyanjana are correct, but the akshara is incorrect",
     "",
     "",
     "",
@@ -38,9 +39,9 @@ true_word = st.session_state.true_word
 word_length = len(true_word.aksharas)
 max_attempts = 10
 
-col_widths = [1 for _ in range(word_length)]
-col_widths.append(2)
-col_widths.append(3)
+col_widths = [2 / word_length for _ in range(word_length)]
+col_widths.append(0.1)
+col_widths.append(4)
 
 col_widths = [width / sum(col_widths) for width in col_widths]
 
@@ -99,6 +100,26 @@ def render_grid():
 st.title("Sanskrit Wordle")
 st.write("Guess the Sanskrit word, one row at a time!")
 
+with st.expander("How to Play"):
+    st.write(
+        "1. The word is a secret Sanskrit word from the Amarakosha having 3 Aksharas.\n\n"
+        "2. Aksharas are a combination of Svaras and Vyanjanas.\n\n"
+        "   - For example, मीनाक्षी has 3 Aksharas: मी, ना, क्षी\n"
+        "   - मी = म् + ई. Here, म् is a Vyanjana and ई is a Svara.\n"
+        "   - ना = न + आ. Here, न is a Vyanjana and आ is a Svara.\n"
+        "   - क्षी = क् + ष् + ई. Here, क् and ष् are Vyanjanas and ई is a Svara.\n\n"
+        "3. The grid will show the status of each Akshara in your guess.\n"
+        "   - Green: Akshara is correct and in the right position.\n"
+        "   - Orange: Akshara is correct but in the wrong position.\n"
+        "   - Blue: Only the Svara is correct.\n"
+        "   - Purple: At least one Vyanjana is correct.\n"
+        "   - Red: Svara and one Vyanjana are correct, but the Akshara is incorrect.\n\n"
+        "4. You have 10 attempts to guess the word.\n\n"
+        "5. If you guess the word correctly, you win!\n\n"
+        "6. If you run out of attempts, the game is over.\n\n"
+        "7. You can enter your guesses in Romanized Sanskrit or Devanagari script."
+    )
+
 
 render_grid()
 
@@ -143,6 +164,17 @@ if not st.session_state.game_over:
 
     if st.session_state.valid_guess and not st.session_state.awaiting_guess:
         guess_word = Word(st.session_state.valid_guess)
+
+        if len(guess_word.aksharas) != word_length:
+            st.error(
+                f"Invalid guess! Your guess has {len(guess_word.aksharas)} Aksharas. Please guess a word with {word_length} Aksharas."
+            )
+            st.session_state.valid_guess = None
+
+            time.sleep(5)
+
+            st.rerun()
+
         compare = Compare(true_word, guess_word)
         compare.compare()
         st.session_state.guess_status[st.session_state.current_row] = compare.status
@@ -170,7 +202,7 @@ if not st.session_state.game_over:
         st.rerun()
 
 if st.session_state.game_over:
-    st.write(st.session_state.message)
+    st.success(st.session_state.message)
 
     if st.button("Play Again"):
         info = get_fixed_length(3)
