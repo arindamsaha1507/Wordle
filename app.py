@@ -11,12 +11,12 @@ from dictionary import get_fixed_length, get_synonyms
 
 
 INFO = [
-    "Colors:",
-    "<div style='background-color: green; width: 20px; height: 20px; display: inline-block;'></div> Akshara is correct and in the right position",
-    "<div style='background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> Akshara is correct but in the wrong position",
-    "<div style='background-color: blue; width: 20px; height: 20px; display: inline-block;'></div> Only the Svara is correct",
-    "<div style='background-color: purple; width: 20px; height: 20px; display: inline-block;'></div> At least one Vyanjana is correct",
-    "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> Svara and one Vyanjana are correct, but the akshara is incorrect",
+    "### Key",
+    "<div style='background-color: green; width: 20px; height: 20px; display: inline-block;'></div> Akshara is present in the word and in the right position",
+    "<div style='background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> Akshara is present in the word but in the wrong position",
+    "<div style='background-color: blue; width: 20px; height: 20px; display: inline-block;'></div> Only the Svara is present in the word",
+    "<div style='background-color: purple; width: 20px; height: 20px; display: inline-block;'></div> At least one Vyanjana is present in the word",
+    "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> Svara and atleast one Vyanjana are present in thw word, but the Akshara is not",
     "",
     "",
     "",
