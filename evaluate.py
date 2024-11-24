@@ -43,9 +43,6 @@ class Compare:
 
         for index, akshara in enumerate(self.guess.aksharas):
 
-            print(f"Index: {index}")
-            print(f"Akshara: {akshara}")
-
             if self.word.is_akshara_correct(akshara, index):
                 self.status[index] = CellStatus.CORRECT
             elif self.word.is_akshara_present(akshara):
@@ -55,21 +52,10 @@ class Compare:
                 vyanjanas = self.guess.vyanjanas[index]
                 svara = self.guess.svaras[index]
 
-                print(f"Vyanjanas: {vyanjanas}")
-                print(f"Svara: {svara}")
-
-                check_list = [self.word.is_vyanjana_present(v) for v in vyanjanas]
-                print(f"Check List: {check_list}")
-
-                print("-----------------")
-
                 vyanjana_check = any(
                     self.word.is_vyanjana_present(v) for v in vyanjanas
                 )
                 svara_check = self.word.is_svara_present(svara)
-
-                print(f"Vyanjana Check: {vyanjana_check}")
-                print(f"Svara Check: {svara_check}")
 
                 if vyanjana_check and svara_check:
                     self.status[index] = CellStatus.SVARA_AND_VYANJANA

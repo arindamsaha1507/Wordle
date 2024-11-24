@@ -1,6 +1,8 @@
 """Module to implement the Wordle game in Streamlit."""
 
 import streamlit as st
+from google.transliteration import transliterate_word
+from akshara import varnakaarya as vk
 
 from evaluate import CellStatus, Compare
 from word_processor import Word
@@ -27,8 +29,9 @@ if "true_word" not in st.session_state:
     st.session_state.shloka = info["shloka"].split("।")
     st.session_state.shloka[0] += "।"
     st.session_state.synonyms = get_synonyms(info["word"])
-    print(st.session_state.synonyms)
     st.session_state.message = ""
+    st.session_state.valid_guess = None
+    st.session_state.awaiting_guess = False
 
 
 true_word = st.session_state.true_word
@@ -96,14 +99,50 @@ def render_grid():
 st.title("Sanskrit Wordle")
 st.write("Guess the Sanskrit word, one row at a time!")
 
-print(st.session_state.guesses)
 
 render_grid()
 
 if not st.session_state.game_over:
     guess = st.text_input("Enter your guess:")
+
+    # Ensure session state variables for managing guess and confirmation are initialized
+    if "valid_guess" not in st.session_state:
+        st.session_state.valid_guess = None
+    if "awaiting_guess" not in st.session_state:
+        st.session_state.awaiting_guess = False
+    if "confirm_button_clicked" not in st.session_state:
+        st.session_state.confirm_button_clicked = False
+    if "options" not in st.session_state:
+        st.session_state.options = []
+
     if st.button("Submit Guess"):
-        guess_word = Word(guess)
+        try:
+            vk.get_akshara(guess)
+            st.session_state.valid_guess = guess
+        except AssertionError:
+            # options = transliterate_word(guess, lang_code="sa")
+            st.session_state.options = transliterate_word(guess, lang_code="sa")
+            # guess = st.selectbox("Select the correct option:", options)
+
+            if not st.session_state.awaiting_guess:
+                st.session_state.valid_guess = None
+                st.session_state.awaiting_guess = True
+                st.session_state.confirm_button_clicked = (
+                    False  # Reset confirm button state
+                )
+
+    if st.session_state.awaiting_guess:
+        selected_guess = st.selectbox(
+            "Select the correct option:", st.session_state.options
+        )
+        if st.button("Confirm Guess", key="confirm_guess_button"):
+            st.session_state.valid_guess = selected_guess
+            st.session_state.awaiting_guess = False
+            st.session_state.confirm_button_clicked = True  # Mark button as clicked
+            st.rerun()  # Force rerun to process confirmed guess
+
+    if st.session_state.valid_guess and not st.session_state.awaiting_guess:
+        guess_word = Word(st.session_state.valid_guess)
         compare = Compare(true_word, guess_word)
         compare.compare()
         st.session_state.guess_status[st.session_state.current_row] = compare.status
@@ -125,14 +164,23 @@ if not st.session_state.game_over:
             st.session_state.message += f"### {st.session_state.shloka[0]}\n"
             st.session_state.message += f"### {st.session_state.shloka[1]}\n"
             st.session_state.message += "## Synonyms\n"
-            print(st.session_state.synonyms)
             st.session_state.message += ", ".join(st.session_state.synonyms["synonyms"])
 
+        st.session_state.valid_guess = None  # Reset the valid guess for next input
         st.rerun()
 
 if st.session_state.game_over:
     st.write(st.session_state.message)
+
     if st.button("Play Again"):
+        info = get_fixed_length(3)
+        st.session_state.true_word = Word(info["word"])
+        st.session_state.shloka = info["shloka"].split("।")
+        st.session_state.shloka[0] += "।"
+        st.session_state.synonyms = get_synonyms(info["word"])
+        st.session_state.message = ""
+        st.session_state.valid_guess = None
+        st.session_state.awaiting_guess = False
         st.session_state.current_row = 0
         st.session_state.guesses = [
             ["" for _ in range(word_length)] for _ in range(max_attempts)
@@ -141,9 +189,4 @@ if st.session_state.game_over:
             [CellStatus.ABSENT for _ in range(word_length)] for _ in range(max_attempts)
         ]
         st.session_state.game_over = False
-        info = get_fixed_length(3)
-        st.session_state.true_word = Word(info["word"])
-        st.session_state.shloka = info["shloka"]
-        st.session_state.synonyms = get_synonyms(info["word"])
-        st.session_state.message = ""
         st.rerun()
