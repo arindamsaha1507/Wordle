@@ -48,3 +48,14 @@ def get_synonyms(word: str):
             return {"synonyms": line.split(",")[2].split()}
 
     return {"error": "No synonyms found for the given word."}
+
+
+def is_word_in_dictionary(word: str):
+    """Check if the given word is in the dictionary."""
+
+    with open("data/words.csv", "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+    valid_words = [line.split(",")[0] for line in lines]
+
+    return word in valid_words
