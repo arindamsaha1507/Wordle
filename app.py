@@ -20,6 +20,14 @@ INFO = [
     "",
     "",
     "",
+    "<div style='background-color: green; width: 20px; height: 20px; display: inline-block;'></div> Akshara is present in the correct position",
+    "<div style='background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> Akshara is present in the word (wrong position)",
+    "<div style='background-color: darkblue; width: 20px; height: 20px; display: inline-block;'></div> The Svara is in the correct position",
+    "<div style='background-color: purple; width: 20px; height: 20px; display: inline-block;'></div> At least one Vyanjana is in the correct position",
+    "<div style='background-color: cornflowerblue; width: 20px; height: 20px; display: inline-block;'></div> The Svara is present in the word",
+    "<div style='background-color: pink; width: 20px; height: 20px; display: inline-block;'></div> At least one Vyanjana is present in the word",
+    "<div style='background-color: magenta; width: 20px; height: 20px; display: inline-block;'></div> Svara and atleast one Vyanjana are present in the correct position, but the Akshara contains some more (or less) Vyanjanas",
+    "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> Svara and atleast one Vyanjana are present in the word, but they belong to different Aksharas",
     "",
 ]
 
@@ -27,6 +35,7 @@ INFO = [
 if "true_word" not in st.session_state:
     info = get_fixed_length(3)
     st.session_state.true_word = Word(info["word"])
+    print(st.session_state.true_word.word)
     st.session_state.shloka = info["shloka"].split("।")
     st.session_state.shloka[0] += "।"
     st.session_state.synonyms = get_synonyms(info["word"])
@@ -63,10 +72,13 @@ if "game_over" not in st.session_state:
 cell_colors_dict = {
     CellStatus.CORRECT: "green",
     CellStatus.PRESENT: "orange",
-    CellStatus.ABSENT: "gray",
-    CellStatus.SVARA_ONLY: "blue",
-    CellStatus.VYANJANA_ONLY: "purple",
+    CellStatus.SVARA_CORRECT: "darkblue",
+    CellStatus.VYANJANA_CORRECT: "purple",
+    CellStatus.SVARA_ONLY: "cornflowerblue",
+    CellStatus.VYANJANA_ONLY: "pink",
+    CellStatus.SVARA_AND_VYANJANA_CORRECT: "magenta",
     CellStatus.SVARA_AND_VYANJANA: "red",
+    CellStatus.ABSENT: "gray",
 }
 
 
@@ -192,9 +204,7 @@ if not st.session_state.game_over:
         st.session_state.current_row += 1
 
         if compare.status == [CellStatus.CORRECT] * word_length:
-            st.session_state.message += (
-                "Congratulations! You have guessed the word correctly.\n"
-            )
+            st.session_state.message += f"Congratulations! You have guessed the word correctly. Score: {max_attempts - st.session_state.current_row + 1}.\n"
             st.session_state.game_over = True
 
         if st.session_state.current_row == max_attempts:
@@ -217,6 +227,7 @@ if st.session_state.game_over:
     if st.button("Play Again"):
         info = get_fixed_length(3)
         st.session_state.true_word = Word(info["word"])
+        print(st.session_state.true_word.word)
         st.session_state.shloka = info["shloka"].split("।")
         st.session_state.shloka[0] += "।"
         st.session_state.synonyms = get_synonyms(info["word"])
