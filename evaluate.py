@@ -11,6 +11,9 @@ class CellStatus(Enum):
 
     CORRECT = "correct"
     PRESENT = "present"
+    SVARA_CORRECT = "svara_correct"
+    VYANJANA_CORRECT = "vyanjana_correct"
+    SVARA_AND_VYANJANA_CORRECT = "svara_and_vyanjana_correct"
     SVARA_ONLY = "svara_only"
     VYANJANA_ONLY = "vyanjana_only"
     SVARA_AND_VYANJANA = "svara_and_vyanjana"
@@ -57,7 +60,21 @@ class Compare:
                 )
                 svara_check = self.word.is_svara_present(svara)
 
-                if vyanjana_check and svara_check:
+                svara_position_check = self.word.is_svara_correct(svara, index)
+                vyanjana_position_check = any(
+                    self.word.is_vyanjana_correct(v, index) for v in vyanjanas
+                )
+
+                if svara_position_check and vyanjana_position_check:
+                    self.status[index] = CellStatus.SVARA_AND_VYANJANA_CORRECT
+
+                elif svara_position_check:
+                    self.status[index] = CellStatus.SVARA_CORRECT
+
+                elif vyanjana_position_check:
+                    self.status[index] = CellStatus.VYANJANA_CORRECT
+
+                elif vyanjana_check and svara_check:
                     self.status[index] = CellStatus.SVARA_AND_VYANJANA
                 elif vyanjana_check:
                     self.status[index] = CellStatus.VYANJANA_ONLY

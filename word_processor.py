@@ -49,6 +49,14 @@ class Word:
         """Check if the given Akshara is correct at the given index."""
         return akshara == self.aksharas[index]
 
+    def is_svara_correct(self, svara: str, index: int) -> bool:
+        """Check if the given Svara is correct at the given index."""
+        return svara == self.svaras[index]
+
+    def is_vyanjana_correct(self, vyanjana: str, index: int) -> bool:
+        """Check if the given Vyanjana is correct at the given index."""
+        return vyanjana in self.vyanjanas[index]
+
     def is_akshara_present(self, akshara: str) -> bool:
         """Check if the given Akshara is present in the word."""
         return akshara in self.aksharas
