@@ -11,16 +11,16 @@ from dictionary import get_fixed_length, get_synonyms, is_word_in_dictionary
 
 
 INFO = [
-    "### Key",
-    "<div style='background-color: green; width: 20px; height: 20px; display: inline-block;'></div> Akshara is present in the word and in the right position",
-    "<div style='background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> Akshara is present in the word but in the wrong position",
-    "<div style='background-color: darkblue; width: 20px; height: 20px; display: inline-block;'></div> The Svara is in the correct position (Vyanjana may or may not be correct)",
-    "<div style='background-color: purple; width: 20px; height: 20px; display: inline-block;'></div> At least one Vyanjana is in the correct position (Svara may or may not be correct)",
-    "<div style='background-color: cornflowerblue; width: 20px; height: 20px; display: inline-block;'></div> The Svara is present in the word",
-    "<div style='background-color: pink; width: 20px; height: 20px; display: inline-block;'></div> At least one Vyanjana is present in the word",
-    "<div style='background-color: magenta; width: 20px; height: 20px; display: inline-block;'></div> Svara and atleast one Vyanjana are present in the correct position, but the Akshara contains some more (or less) Vyanjanas",
-    "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> Svara and atleast one Vyanjana are present in the word, but they belong to different Aksharas",
-    "",
+    "#### Information",
+    "Each cell in the grid represents an Akshara in the word. The colour in the **left** half of the cell represents the **Vyanjana** and the colour in the **right** half represents the **Svara**.",
+    "The colours in the cell represent the following:",
+    "<div style='background-color: green; width: 20px; height: 20px; display: inline-block;'></div> The Letter is in the correct position",
+    "<div style='background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> The Letter is in the word, but in the wrong position",
+    "<div style='background-color: gray; width: 20px; height: 20px; display: inline-block;'></div> The Letter is not in the word",
+    "So, a completely filled green cell means that the Akshara is in the right position of the word and a completely filled yellow cell means that the Akshara is present in the word but in the wrong position.",
+    "Additionally, there are 2 special cases of completely filled cells:",
+    "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> The Svara and atleast one Vyanjana are present in the word, but none of them are in the the correct position",
+    "<div style='background-color: darkblue; width: 20px; height: 20px; display: inline-block;'></div> The Svara and atleast one Vyanjana are in the correct position, but the Akshara is incorrect (Vyanjanas are either missing or extra or in the wrong order)",
 ]
 
 
@@ -55,7 +55,8 @@ if "guesses" not in st.session_state:
     ]
 if "guess_status" not in st.session_state:
     st.session_state.guess_status = [
-        [CellStatus.ABSENT for _ in range(word_length)] for _ in range(max_attempts)
+        [(CellStatus.ABSENT, CellStatus.ABSENT) for _ in range(word_length)]
+        for _ in range(max_attempts)
     ]
 if "game_over" not in st.session_state:
     st.session_state.game_over = False
@@ -64,21 +65,18 @@ if "game_over" not in st.session_state:
 cell_colors_dict = {
     CellStatus.CORRECT: "green",
     CellStatus.PRESENT: "orange",
-    CellStatus.SVARA_CORRECT: "darkblue",
-    CellStatus.VYANJANA_CORRECT: "purple",
-    CellStatus.SVARA_ONLY: "cornflowerblue",
-    CellStatus.VYANJANA_ONLY: "pink",
-    CellStatus.SVARA_AND_VYANJANA_CORRECT: "magenta",
-    CellStatus.SVARA_AND_VYANJANA: "red",
     CellStatus.ABSENT: "gray",
+    CellStatus.MISSING: "darkblue",
+    CellStatus.MISMATCH: "red",
 }
 
 
 def grid_cell_markdown(akshara: str, status: CellStatus) -> str:
     """Return the HTML for a grid cell."""
 
-    cell_color = cell_colors_dict[status]
-    return f"<div style='text-align: center; background-color: {cell_color}; color: white; height: 50px; line-height: 50px; margin-bottom: 10px;'>{akshara}</div>"
+    cell_color_1 = cell_colors_dict[status[0]]
+    cell_color_2 = cell_colors_dict[status[1]]
+    return f"<div style='text-align: center; background: linear-gradient(90deg, {cell_color_1} 50%, {cell_color_2} 50%); color: white; height: 50px; line-height: 50px; margin-bottom: 10px;'>{akshara}</div>"
 
 
 # Render the Grid
@@ -195,8 +193,8 @@ if not st.session_state.game_over:
         st.session_state.guesses[st.session_state.current_row] = guess_word.aksharas
         st.session_state.current_row += 1
 
-        if compare.status == [CellStatus.CORRECT] * word_length:
-            st.session_state.message += f"Congratulations! You have guessed the word correctly. Score: {max_attempts - st.session_state.current_row + 1}.\n"
+        if compare.status == [(CellStatus.CORRECT, CellStatus.CORRECT)] * word_length:
+            st.session_state.message += f"Congratulations! You have guessed the word correctly. Score: {max_attempts - st.session_state.current_row + 1} / 10.\n"
             st.session_state.game_over = True
 
         if st.session_state.current_row == max_attempts:
@@ -231,7 +229,8 @@ if st.session_state.game_over:
             ["" for _ in range(word_length)] for _ in range(max_attempts)
         ]
         st.session_state.guess_status = [
-            [CellStatus.ABSENT for _ in range(word_length)] for _ in range(max_attempts)
+            [(CellStatus.ABSENT, CellStatus.ABSENT) for _ in range(word_length)]
+            for _ in range(max_attempts)
         ]
         st.session_state.game_over = False
         st.rerun()
