@@ -1,14 +1,15 @@
 """Module to implement the Wordle game in Streamlit."""
 
-import time
+import logging
 
 import streamlit as st
 from akshara import varnakaarya as vk
 import yaml
+from logtail import LogtailHandler
 
 from evaluate import CellStatus, Compare
 from word_processor import Word
-from dictionary import get_fixed_length, get_synonyms, is_word_in_dictionary
+from dictionary import get_fixed_length, get_synonyms
 from grid import render_grid
 from utils import (
     check_guess_word_length,
@@ -17,6 +18,13 @@ from utils import (
     transliteration_options,
     wait_for_guess_confirmation,
 )
+
+handler = LogtailHandler(source_token=st.secrets["LOGGING_TOKEN"])
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.handlers = []
+logger.addHandler(handler)
+
 
 WORD_LENGTH = 3
 MAX_ATTEMPTS = 10
@@ -31,9 +39,9 @@ helper_text = all_text["helper_text"]
 if "true_word" not in st.session_state:
 
     info = get_fixed_length(WORD_LENGTH)
+    logger.info("True word: %s", info["word"])
 
     st.session_state.true_word = Word(info["word"])
-    print(st.session_state.true_word.word)
 
     st.session_state.shloka = info["shloka"].split("।")
     st.session_state.shloka[0] += "।"
@@ -56,7 +64,6 @@ if "true_word" not in st.session_state:
 
 
 true_word = st.session_state.true_word
-
 
 # Main App Interface
 st.title("Sanskrit Wordle")
@@ -107,6 +114,8 @@ if not st.session_state.game_over:
         check_guess_word_length(guess_word, WORD_LENGTH)
         is_guess_word_in_dictionary(guess_word)
 
+        logger.info("Guess word: %s for True word: %s", guess_word.word, true_word.word)
+
         compare = Compare(true_word, guess_word)
         compare.compare()
         st.session_state.guess_status[st.session_state.current_row] = compare.status
@@ -116,9 +125,19 @@ if not st.session_state.game_over:
         if compare.status == [(CellStatus.CORRECT, CellStatus.CORRECT)] * WORD_LENGTH:
             st.session_state.message += f"Congratulations! You have guessed the word correctly. Score: {MAX_ATTEMPTS - st.session_state.current_row + 1} / 10.\n"
             st.session_state.game_over = True
+            logger.info(
+                "Score: %s for True Word: %s",
+                MAX_ATTEMPTS - st.session_state.current_row + 1,
+                true_word.word,
+            )
 
         if st.session_state.current_row == MAX_ATTEMPTS:
             st.session_state.game_over = True
+            logger.info(
+                "Score: %s for True Word: %s",
+                MAX_ATTEMPTS - st.session_state.current_row + 1,
+                true_word.word,
+            )
 
         if st.session_state.game_over:
             st.session_state.message += f"## The word was {true_word.word}.\n"
