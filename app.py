@@ -1,101 +1,61 @@
 """Module to implement the Wordle game in Streamlit."""
 
 import time
+
 import streamlit as st
-from google.transliteration import transliterate_word
 from akshara import varnakaarya as vk
+import yaml
 
 from evaluate import CellStatus, Compare
 from word_processor import Word
 from dictionary import get_fixed_length, get_synonyms, is_word_in_dictionary
+from grid import render_grid
+from utils import (
+    check_guess_word_length,
+    is_guess_word_in_dictionary,
+    select_geuss,
+    transliteration_options,
+    wait_for_guess_confirmation,
+)
+
+WORD_LENGTH = 3
+MAX_ATTEMPTS = 10
+
+# Load the information about the game
+with open("ui.yml", "r", encoding="utf-8") as file:
+    all_text = yaml.safe_load(file)
 
 
-INFO = [
-    "#### Information",
-    "Each cell in the grid represents an Akshara in the word. The colour in the **left** half of the cell represents the **Vyanjana** and the colour in the **right** half represents the **Svara**.",
-    "The colours in the cell represent the following:",
-    "<div style='background-color: green; width: 20px; height: 20px; display: inline-block;'></div> The Letter is in the correct position",
-    "<div style='background-color: orange; width: 20px; height: 20px; display: inline-block;'></div> The Letter is in the word, but in the wrong position",
-    "<div style='background-color: gray; width: 20px; height: 20px; display: inline-block;'></div> The Letter is not in the word",
-    "So, a completely filled green cell means the Akshara is present in the correct position and a completely filled yellow cell means the Akshara is present in another position.",
-    "Additionally, there are 2 special cases of completely filled cells:",
-    "<div style='background-color: red; width: 20px; height: 20px; display: inline-block;'></div> The Svara and atleast one Vyanjana are present in the word, but none of them are in the the correct position",
-    "<div style='background-color: darkblue; width: 20px; height: 20px; display: inline-block;'></div> The Svara and atleast one Vyanjana are in the correct position, but the Akshara is incorrect (Vyanjanas are either missing or extra or in the wrong order)",
-]
-
+helper_text = all_text["helper_text"]
 
 if "true_word" not in st.session_state:
-    info = get_fixed_length(3)
+
+    info = get_fixed_length(WORD_LENGTH)
+
     st.session_state.true_word = Word(info["word"])
     print(st.session_state.true_word.word)
+
     st.session_state.shloka = info["shloka"].split("।")
     st.session_state.shloka[0] += "।"
     st.session_state.synonyms = get_synonyms(info["word"])
     st.session_state.message = ""
     st.session_state.valid_guess = None
     st.session_state.awaiting_guess = False
+    st.session_state.current_row = 0
+    st.session_state.guesses = [
+        ["" for _ in range(WORD_LENGTH)] for _ in range(MAX_ATTEMPTS)
+    ]
+    st.session_state.guess_status = [
+        [(CellStatus.ABSENT, CellStatus.ABSENT) for _ in range(WORD_LENGTH)]
+        for _ in range(MAX_ATTEMPTS)
+    ]
+    st.session_state.game_over = False
+
+    st.session_state.confirm_button_clicked = False
+    st.session_state.options = []
 
 
 true_word = st.session_state.true_word
-word_length = len(true_word.aksharas)
-max_attempts = 10
-
-col_widths = [2 / word_length for _ in range(word_length)]
-col_widths.append(0.1)
-col_widths.append(4)
-
-col_widths = [width / sum(col_widths) for width in col_widths]
-
-# Define global variables for the game
-if "current_row" not in st.session_state:
-    st.session_state.current_row = 0
-if "guesses" not in st.session_state:
-    st.session_state.guesses = [
-        ["" for _ in range(word_length)] for _ in range(max_attempts)
-    ]
-if "guess_status" not in st.session_state:
-    st.session_state.guess_status = [
-        [(CellStatus.ABSENT, CellStatus.ABSENT) for _ in range(word_length)]
-        for _ in range(max_attempts)
-    ]
-if "game_over" not in st.session_state:
-    st.session_state.game_over = False
-
-
-cell_colors_dict = {
-    CellStatus.CORRECT: "green",
-    CellStatus.PRESENT: "orange",
-    CellStatus.ABSENT: "gray",
-    CellStatus.MISSING: "darkblue",
-    CellStatus.MISMATCH: "red",
-}
-
-
-def grid_cell_markdown(akshara: str, status: CellStatus) -> str:
-    """Return the HTML for a grid cell."""
-
-    cell_color_1 = cell_colors_dict[status[0]]
-    cell_color_2 = cell_colors_dict[status[1]]
-    return f"<div style='text-align: center; background: linear-gradient(90deg, {cell_color_1} 50%, {cell_color_2} 50%); color: white; height: 50px; line-height: 50px; margin-bottom: 10px;'>{akshara}</div>"
-
-
-# Render the Grid
-def render_grid():
-    """Render the grid of Aksharas."""
-
-    for row in range(max_attempts):
-        cols = st.columns(spec=col_widths, gap="small")
-        for col_idx, col in enumerate(cols):
-
-            if col_idx < word_length:
-                akshara = st.session_state.guesses[row][col_idx]
-                status = st.session_state.guess_status[row][col_idx]
-                col.markdown(
-                    grid_cell_markdown(akshara, status), unsafe_allow_html=True
-                )
-
-            elif col_idx == word_length + 1:
-                col.markdown(INFO[row], unsafe_allow_html=True)
 
 
 # Main App Interface
@@ -123,69 +83,29 @@ with st.expander("How to Play"):
     )
 
 
-render_grid()
+render_grid(WORD_LENGTH, MAX_ATTEMPTS, helper_text)
 
 if not st.session_state.game_over:
-    guess = st.text_input("Enter your guess:")
 
-    # Ensure session state variables for managing guess and confirmation are initialized
-    if "valid_guess" not in st.session_state:
-        st.session_state.valid_guess = None
-    if "awaiting_guess" not in st.session_state:
-        st.session_state.awaiting_guess = False
-    if "confirm_button_clicked" not in st.session_state:
-        st.session_state.confirm_button_clicked = False
-    if "options" not in st.session_state:
-        st.session_state.options = []
+    guess = st.text_input("Enter your guess:")
 
     if st.button("Submit Guess"):
         try:
             vk.get_akshara(guess)
             st.session_state.valid_guess = guess
         except AssertionError:
-            # options = transliterate_word(guess, lang_code="sa")
-            st.session_state.options = transliterate_word(guess, lang_code="sa")
-            # guess = st.selectbox("Select the correct option:", options)
 
-            if not st.session_state.awaiting_guess:
-                st.session_state.valid_guess = None
-                st.session_state.awaiting_guess = True
-                st.session_state.confirm_button_clicked = (
-                    False  # Reset confirm button state
-                )
+            transliteration_options(guess)
+            wait_for_guess_confirmation()
 
     if st.session_state.awaiting_guess:
-        selected_guess = st.selectbox(
-            "Select the correct option:", st.session_state.options
-        )
-        if st.button("Confirm Guess", key="confirm_guess_button"):
-            st.session_state.valid_guess = selected_guess
-            st.session_state.awaiting_guess = False
-            st.session_state.confirm_button_clicked = True  # Mark button as clicked
-            st.rerun()  # Force rerun to process confirmed guess
+        select_geuss()
 
     if st.session_state.valid_guess and not st.session_state.awaiting_guess:
         guess_word = Word(st.session_state.valid_guess)
 
-        if len(guess_word.aksharas) != word_length:
-            st.error(
-                f"Invalid guess! Your guess has {len(guess_word.aksharas)} Aksharas. Please guess a word with {word_length} Aksharas."
-            )
-            st.session_state.valid_guess = None
-
-            time.sleep(5)
-
-            st.rerun()
-
-        if not is_word_in_dictionary(guess_word.word):
-            st.error(
-                f"Invalid guess! The word {guess_word.word} is not in the amarakosha dictionary."
-            )
-            st.session_state.valid_guess = None
-
-            time.sleep(5)
-
-            st.rerun()
+        check_guess_word_length(guess_word, WORD_LENGTH)
+        is_guess_word_in_dictionary(guess_word)
 
         compare = Compare(true_word, guess_word)
         compare.compare()
@@ -193,11 +113,11 @@ if not st.session_state.game_over:
         st.session_state.guesses[st.session_state.current_row] = guess_word.aksharas
         st.session_state.current_row += 1
 
-        if compare.status == [(CellStatus.CORRECT, CellStatus.CORRECT)] * word_length:
-            st.session_state.message += f"Congratulations! You have guessed the word correctly. Score: {max_attempts - st.session_state.current_row + 1} / 10.\n"
+        if compare.status == [(CellStatus.CORRECT, CellStatus.CORRECT)] * WORD_LENGTH:
+            st.session_state.message += f"Congratulations! You have guessed the word correctly. Score: {MAX_ATTEMPTS - st.session_state.current_row + 1} / 10.\n"
             st.session_state.game_over = True
 
-        if st.session_state.current_row == max_attempts:
+        if st.session_state.current_row == MAX_ATTEMPTS:
             st.session_state.game_over = True
 
         if st.session_state.game_over:
@@ -215,24 +135,7 @@ if st.session_state.game_over:
     st.success(st.session_state.message)
 
     if st.button("Play Again"):
-        info = get_fixed_length(3)
-        st.session_state.true_word = Word(info["word"])
-        print(st.session_state.true_word.word)
-        st.session_state.shloka = info["shloka"].split("।")
-        st.session_state.shloka[0] += "।"
-        st.session_state.synonyms = get_synonyms(info["word"])
-        st.session_state.message = ""
-        st.session_state.valid_guess = None
-        st.session_state.awaiting_guess = False
-        st.session_state.current_row = 0
-        st.session_state.guesses = [
-            ["" for _ in range(word_length)] for _ in range(max_attempts)
-        ]
-        st.session_state.guess_status = [
-            [(CellStatus.ABSENT, CellStatus.ABSENT) for _ in range(word_length)]
-            for _ in range(max_attempts)
-        ]
-        st.session_state.game_over = False
+        st.session_state.clear()
         st.rerun()
 
 st.write("---")
