@@ -25,9 +25,6 @@ class Word:
     def __post_init__(self):
         """Fetch the Aksharas for the given word."""
 
-        if "ं" in self.fetch_vinyaasa(self.word):
-            raise NotImplementedError("Words with 'ं' are not supported.")
-
         self.aksharas = self.fetch_aksharas(self.word)
 
         for akshara in self.aksharas:

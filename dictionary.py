@@ -31,7 +31,7 @@ def get_fixed_length(length: int):
         res = get_random()
         akshaara = vk.get_akshara(res["word"])
 
-        if len(akshaara) == length and "ं" not in akshaara:
+        if len(akshaara) == length:
             return res
 
     return {"error": "No word found with the given length."}
