@@ -64,3 +64,15 @@ def is_guess_word_in_dictionary(guess_word: Word) -> None:
         time.sleep(5)
 
         st.rerun()
+
+
+def is_word_previously_guessed(guess_word: Word) -> None:
+    """Check if the word has been previously guessed."""
+
+    if guess_word.word in st.session_state.previous_guesses:
+        st.error(f"Invalid guess! The word {guess_word.word} has already been guessed.")
+        st.session_state.valid_guess = None
+
+        time.sleep(5)
+
+        st.rerun()

@@ -14,6 +14,7 @@ from grid import render_grid
 from utils import (
     check_guess_word_length,
     is_guess_word_in_dictionary,
+    is_word_previously_guessed,
     select_geuss,
     transliteration_options,
     wait_for_guess_confirmation,
@@ -61,6 +62,7 @@ if "true_word" not in st.session_state:
 
     st.session_state.confirm_button_clicked = False
     st.session_state.options = []
+    st.session_state.previous_guesses = []
 
 
 true_word = st.session_state.true_word
@@ -113,6 +115,7 @@ if not st.session_state.game_over:
 
         check_guess_word_length(guess_word, WORD_LENGTH)
         is_guess_word_in_dictionary(guess_word)
+        is_word_previously_guessed(guess_word)
 
         logger.info("Guess word: %s for True word: %s", guess_word.word, true_word.word)
 
@@ -120,6 +123,7 @@ if not st.session_state.game_over:
         compare.compare()
         st.session_state.guess_status[st.session_state.current_row] = compare.status
         st.session_state.guesses[st.session_state.current_row] = guess_word.aksharas
+        st.session_state.previous_guesses.append(guess_word.word)
         st.session_state.current_row += 1
 
         if compare.status == [(CellStatus.CORRECT, CellStatus.CORRECT)] * WORD_LENGTH:
@@ -135,7 +139,7 @@ if not st.session_state.game_over:
             st.session_state.game_over = True
             logger.info(
                 "Score: %s for True Word: %s",
-                MAX_ATTEMPTS - st.session_state.current_row + 1,
+                MAX_ATTEMPTS - st.session_state.current_row,
                 true_word.word,
             )
 
