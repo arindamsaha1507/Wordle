@@ -9,11 +9,9 @@ def get_random() -> str:
     """Return a word from amarakosha."""
 
     with open("data/words.csv", "r", encoding="utf-8") as file:
-        words = file.readlines()
+        words = file.readlines()[0]
 
-    line = words[random.choice(range(len(words)))]
-    word = line.split(",")[0]
-
+    word = random.choice(words.split(","))
     return word
 
 
@@ -47,8 +45,8 @@ def is_word_in_dictionary(word: str):
     """Check if the given word is in the dictionary."""
 
     with open("data/words.csv", "r", encoding="utf-8") as file:
-        lines = file.readlines()
+        lines = file.readlines()[0]
 
-    valid_words = [line.split(",")[0] for line in lines]
+    valid_words = lines.split(",")
 
     return word in valid_words
