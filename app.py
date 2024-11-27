@@ -95,6 +95,15 @@ with st.expander("Colour Code"):
         "4. How this game, anusvaara (अं) and visarga (ः) are considered as Vyanjanas."
     )
 
+with st.expander(
+    "Liked the app? Checkout some of the other Sanskrit related projects we have been working on!"
+):
+    st.write(
+        "1. [सङ्ख्याकारः](https://sankhya.streamlit.app/) - A Sanskrit number converter that converts numbers to words.\n"
+        "2. [अक्षर](https://pypi.org/project/akshara/) - A Python library for working with Sanskrit Varnas.\n"
+        "3. [वाक्यसन्धि](https://sandhi.streamlit.app/) - An app that performs Sanskrit Sandhi sentences (still in development).\n"
+    )
+
 
 render_grid(WORD_LENGTH, MAX_ATTEMPTS, helper_text)
 
@@ -160,13 +169,22 @@ if st.session_state.game_over:
         st.session_state.clear()
         st.rerun()
 
-st.write("---")
 
-with st.expander(
-    "Liked the app? Checkout some of the other Sanskrit related projects we have been working on!"
-):
-    st.write(
-        "1. [सङ्ख्याकारः](https://sankhya.streamlit.app/) - A Sanskrit number converter that converts numbers to words.\n"
-        "2. [अक्षर](https://pypi.org/project/akshara/) - A Python library for working with Sanskrit Varnas.\n"
-        "3. [वाक्यसन्धि](https://sandhi.streamlit.app/) - An app that performs Sanskrit Sandhi sentences (still in development).\n"
-    )
+with st.container():
+
+    st.write("---")
+    st.write("## Feedback")
+    stars = st.feedback("stars")
+    feedback = st.text_area("Comments", height=100)
+
+    if feedback:
+        logger.critical("Stars: %s", stars)
+
+    if st.button("Submit Feedback"):
+        st.write("Feedback submitted. Thank you!")
+        logger.critical("Feedback: %s", feedback)
+        st.session_state.feedback_submitted = True
+
+    if "feedback_submitted" in st.session_state:
+        st.write("Thank you for your feedback!")
+        st.session_state.feedback_submitted = False
