@@ -9,7 +9,7 @@ from logtail import LogtailHandler
 
 from evaluate import CellStatus, Compare
 from word_processor import Word
-from dictionary import get_fixed_length, get_synonyms
+from dictionary import get_fixed_length
 from grid import render_grid
 from utils import (
     check_guess_word_length,
@@ -40,13 +40,10 @@ helper_text = all_text["helper_text"]
 if "true_word" not in st.session_state:
 
     info = get_fixed_length(WORD_LENGTH)
-    logger.info("True word: %s", info["word"])
+    logger.info("True word: %s", info)
 
-    st.session_state.true_word = Word(info["word"])
+    st.session_state.true_word = Word(info)
 
-    st.session_state.shloka = info["shloka"].split("।")
-    st.session_state.shloka[0] += "।"
-    st.session_state.synonyms = get_synonyms(info["word"])
     st.session_state.message = ""
     st.session_state.valid_guess = None
     st.session_state.awaiting_guess = False
@@ -145,11 +142,6 @@ if not st.session_state.game_over:
 
         if st.session_state.game_over:
             st.session_state.message += f"## The word was {true_word.word}.\n"
-            st.session_state.message += " The shloka is: \n"
-            st.session_state.message += f"### {st.session_state.shloka[0]}\n"
-            st.session_state.message += f"### {st.session_state.shloka[1]}\n"
-            st.session_state.message += "## Synonyms\n"
-            st.session_state.message += ", ".join(st.session_state.synonyms["synonyms"])
 
         st.session_state.valid_guess = None  # Reset the valid guess for next input
         st.rerun()

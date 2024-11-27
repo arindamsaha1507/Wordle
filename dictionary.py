@@ -5,36 +5,27 @@ import random
 from akshara import varnakaarya as vk
 
 
-def get_random():
+def get_random() -> str:
     """Return a word from amarakosha."""
 
     with open("data/words.csv", "r", encoding="utf-8") as file:
-        words = file.readlines()
+        words = file.readlines()[0]
 
-    with open("data/shlokas.csv", "r", encoding="utf-8") as file:
-        shlokas = file.readlines()
-
-    line = words[random.choice(range(len(words)))]
-    word = line.split(",")[0]
-    linga = line.split(",")[1]
-    shloka_number = line.split(",")[2]
-
-    shloka = [line for line in shlokas if shloka_number in line][0].split(",")[0]
-
-    return {"word": word, "linga": linga, "shloka": shloka}
+    word = random.choice(words.split(","))
+    return word
 
 
-def get_fixed_length(length: int):
+def get_fixed_length(length: int) -> str:
     """Return a word from amarakosha with a fixed length."""
 
     for _ in range(100):
         res = get_random()
-        akshaara = vk.get_akshara(res["word"])
+        akshaara = vk.get_akshara(res)
 
         if len(akshaara) == length:
             return res
 
-    return {"error": "No word found with the given length."}
+    return None
 
 
 def get_synonyms(word: str):
@@ -54,8 +45,8 @@ def is_word_in_dictionary(word: str):
     """Check if the given word is in the dictionary."""
 
     with open("data/words.csv", "r", encoding="utf-8") as file:
-        lines = file.readlines()
+        lines = file.readlines()[0]
 
-    valid_words = [line.split(",")[0] for line in lines]
+    valid_words = lines.split(",")
 
     return word in valid_words
