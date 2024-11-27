@@ -20,7 +20,11 @@ def get_fixed_length(length: int) -> str:
 
     for _ in range(100):
         res = get_random()
-        akshaara = vk.get_akshara(res)
+
+        try:
+            akshaara = vk.get_akshara(res)
+        except AssertionError:
+            akshaara = []
 
         if len(akshaara) == length:
             return res
