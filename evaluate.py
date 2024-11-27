@@ -45,81 +45,52 @@ class Compare:
     def compare(self):
         """Compare the word and guess Aksharas."""
 
-        for index, akshara in enumerate(self.guess.aksharas):
+        word_svara_signature = self.word.get_svara_signature()
+        word_vyanjana_signature = self.word.get_vyanjana_signature()
 
-            if self.word.is_akshara_correct(akshara, index):
-                self.status[index] = (CellStatus.CORRECT, CellStatus.CORRECT)
-            elif self.word.is_akshara_present(akshara):
-                self.status[index] = (CellStatus.PRESENT, CellStatus.PRESENT)
+        word_vyanjana_signature_flat = [
+            v for v_list in word_vyanjana_signature for v in v_list
+        ]
+
+        guess_svara_signature = self.guess.get_svara_signature()
+        guess_vyanjana_signature = self.guess.get_vyanjana_signature()
+
+        if len(word_svara_signature) != len(guess_svara_signature):
+            raise ValueError("Word and guess svara signatures do not match.")
+
+        length = len(word_svara_signature)
+
+        for ii in range(length):
+
+            word_svara_sig = word_svara_signature[ii]
+            word_vyanjana_sig = word_vyanjana_signature[ii]
+
+            guess_svara_sig = guess_svara_signature[ii]
+            guess_vyanjana_sig = guess_vyanjana_signature[ii]
+
+            if word_svara_sig == guess_svara_sig:
+                svara_status = CellStatus.CORRECT
+            elif guess_svara_sig in word_svara_signature:
+                svara_status = CellStatus.PRESENT
+            else:
+                svara_status = CellStatus.ABSENT
+
+            if word_vyanjana_sig == guess_vyanjana_sig:
+                vyanjana_status = CellStatus.CORRECT
             else:
 
-                vyanjanas = self.guess.vyanjanas[index]
-                svara = self.guess.svaras[index]
+                vyanjana_status = CellStatus.ABSENT
 
-                vyanjana_check = any(
-                    self.word.is_vyanjana_present(v) for v in vyanjanas
-                )
-                svara_check = self.word.is_svara_present(svara)
+                for vyanjana in guess_vyanjana_sig:
 
-                svara_position_check = self.word.is_svara_correct(svara, index)
-                vyanjana_position_check = any(
-                    self.word.is_vyanjana_correct(v, index) for v in vyanjanas
-                )
+                    if vyanjana == "-":
+                        continue
 
-                if svara_position_check:
-                    svara_status = CellStatus.CORRECT
-                elif svara_check:
-                    svara_status = CellStatus.PRESENT
-                else:
-                    svara_status = CellStatus.ABSENT
+                    if vyanjana in word_vyanjana_signature[ii]:
+                        vyanjana_status = CellStatus.MISSING
+                        break
 
-                if vyanjana_position_check:
-                    vyanjana_status = CellStatus.CORRECT
-                elif vyanjana_check:
-                    vyanjana_status = CellStatus.PRESENT
-                else:
-                    vyanjana_status = CellStatus.ABSENT
+                    if vyanjana in word_vyanjana_signature_flat:
+                        vyanjana_status = CellStatus.PRESENT
 
-                if svara_status == vyanjana_status:
-                    if svara_status == CellStatus.ABSENT:
-                        self.status[index] = (CellStatus.ABSENT, CellStatus.ABSENT)
-
-                    elif svara_status == CellStatus.PRESENT:
-                        self.status[index] = (CellStatus.MISMATCH, CellStatus.MISMATCH)
-
-                    elif svara_status == CellStatus.CORRECT:
-                        self.status[index] = (CellStatus.MISSING, CellStatus.MISSING)
-
-                else:
-                    self.status[index] = (vyanjana_status, svara_status)
-
-                # vyanjanas = self.guess.vyanjanas[index]
-                # svara = self.guess.svaras[index]
-
-                # vyanjana_check = any(
-                #     self.word.is_vyanjana_present(v) for v in vyanjanas
-                # )
-                # svara_check = self.word.is_svara_present(svara)
-
-                # svara_position_check = self.word.is_svara_correct(svara, index)
-                # vyanjana_position_check = any(
-                #     self.word.is_vyanjana_correct(v, index) for v in vyanjanas
-                # )
-
-                # if svara_position_check and vyanjana_position_check:
-                #     self.status[index] = CellStatus.SVARA_AND_VYANJANA_CORRECT
-
-                # elif svara_position_check:
-                #     self.status[index] = CellStatus.SVARA_CORRECT
-
-                # elif vyanjana_position_check:
-                #     self.status[index] = CellStatus.VYANJANA_CORRECT
-
-                # elif vyanjana_check and svara_check:
-                #     self.status[index] = CellStatus.SVARA_AND_VYANJANA
-                # elif vyanjana_check:
-                #     self.status[index] = CellStatus.VYANJANA_ONLY
-                # elif svara_check:
-                #     self.status[index] = CellStatus.SVARA_ONLY
-                # else:
-                #     self.status[index] = CellStatus.ABSENT
+            self.status[ii] = (vyanjana_status, svara_status)

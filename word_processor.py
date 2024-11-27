@@ -66,3 +66,27 @@ class Word:
         """Check if the given Vyanjana is present in the word."""
         vyanjana_flat = [v for v_list in self.vyanjanas for v in v_list]
         return vyanjana in vyanjana_flat
+
+    def get_svara_signature(self) -> list[str]:
+        """Return the Svara signature of the word."""
+
+        signature = []
+
+        for akshara in self.aksharas:
+            vinyaasa = self.fetch_vinyaasa(akshara)
+            svara = [v for v in vinyaasa if v in SVARAS][0]
+            signature.append(svara)
+
+        return signature
+
+    def get_vyanjana_signature(self) -> list[list[str]]:
+        """Return the Vyanjana signature of the word."""
+
+        signature = []
+
+        for akshara in self.aksharas:
+            vinyaasa = self.fetch_vinyaasa(akshara)
+            vyanjana = [v if v not in SVARAS else "-" for v in vinyaasa]
+            signature.append(vyanjana)
+
+        return signature

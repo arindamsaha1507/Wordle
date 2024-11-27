@@ -70,22 +70,29 @@ st.write("Guess the Sanskrit word, one row at a time!")
 
 with st.expander("How to Play"):
     st.write(
-        "1. The word is a secret Sanskrit word from the Amarakosha having 3 Aksharas.\n\n"
+        "1. The word is a secret Sanskrit word having 3 Aksharas.\n\n"
         "2. Aksharas are a combination of Svaras and Vyanjanas.\n\n"
         "   - For example, मीनाक्षी has 3 Aksharas: मी, ना, क्षी\n"
         "   - मी = म् + ई. Here, म् is a Vyanjana and ई is a Svara.\n"
         "   - ना = न + आ. Here, न is a Vyanjana and आ is a Svara.\n"
         "   - क्षी = क् + ष् + ई. Here, क् and ष् are Vyanjanas and ई is a Svara.\n\n"
-        "3. The grid will show the status of each Akshara in your guess.\n"
-        "   - Green: Akshara is correct and in the right position.\n"
-        "   - Orange: Akshara is correct but in the wrong position.\n"
-        "   - Blue: Only the Svara is correct.\n"
-        "   - Purple: At least one Vyanjana is correct.\n"
-        "   - Red: Svara and one Vyanjana are correct, but the Akshara is incorrect.\n\n"
+        "3. The grid colours will help you in your guess (see the colour code below).\n"
         "4. You have 10 attempts to guess the word.\n\n"
         "5. If you guess the word correctly, you win!\n\n"
         "6. If you run out of attempts, the game is over.\n\n"
         "7. You can enter your guesses in Romanized Sanskrit or Devanagari script."
+    )
+
+with st.expander("Colour Code"):
+    st.write(
+        "1. The colour on the left side of the cell represents information about the Svara.\n"
+        "2. The colour on the right side of the cell represents information about the Vyanjana.\n"
+        "3. The possible cell colours are:\n"
+        "   - Green: Svara or Vyanjana is correct and in the right position.\n"
+        "   - Yellow: Svara or Vyanjana is correct but in the wrong position.\n"
+        "   - Grey: Svara or Vyanjana is incorrect.\n"
+        "   - Blue: Vyanjana is in the correct position but is partly (add, remove, replace or rearrange the vyanjanas).\n\n"
+        "4. How this game, anusvaara (अं) and visarga (ः) are considered as Vyanjanas."
     )
 
 
