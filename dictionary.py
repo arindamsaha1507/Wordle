@@ -1,25 +1,27 @@
 """Module for the API."""
 
+import pathlib
+
 import random
 
 from akshara import varnakaarya as vk
 
 
-def get_random() -> str:
+def get_random(filename: pathlib.Path = "data/words.csv") -> str:
     """Return a word from amarakosha."""
 
-    with open("data/words.csv", "r", encoding="utf-8") as file:
+    with open(filename, "r", encoding="utf-8") as file:
         words = file.readlines()[0]
 
     word = random.choice(words.split(","))
     return word
 
 
-def get_fixed_length(length: int) -> str:
+def get_fixed_length(length: int, filename: pathlib.Path = "data/words.csv") -> str:
     """Return a word from amarakosha with a fixed length."""
 
     for _ in range(100):
-        res = get_random()
+        res = get_random(filename)
 
         try:
             akshaara = vk.get_akshara(res)
