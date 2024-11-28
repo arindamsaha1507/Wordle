@@ -56,9 +56,7 @@ def is_guess_word_in_dictionary(guess_word: Word) -> None:
     """Check if the word is in the dictionary."""
 
     if not is_word_in_dictionary(guess_word.word):
-        st.error(
-            f"Invalid guess! The word {guess_word.word} is not in the amarakosha dictionary."
-        )
+        st.error(f"Invalid guess! The word {guess_word.word} is not in the dictionary.")
         st.session_state.valid_guess = None
 
         time.sleep(5)

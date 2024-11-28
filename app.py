@@ -39,7 +39,7 @@ helper_text = all_text["helper_text"]
 
 if "true_word" not in st.session_state:
 
-    info = get_fixed_length(WORD_LENGTH)
+    info = get_fixed_length(WORD_LENGTH, filename="data/raamaayana.csv")
     logger.info("True word: %s", info)
 
     st.session_state.true_word = Word(info)
