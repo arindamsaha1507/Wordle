@@ -5,6 +5,7 @@ import time
 import streamlit as st
 
 from akshara import varnakaarya as vk
+from dictionary import is_word_in_dictionary
 
 
 files = pathlib.Path("data").rglob("*.csv")
@@ -40,6 +41,7 @@ if st.session_state.file_selected:
 
     words = words.split(",")
     words = set(words)
+
     words = words.union(st.session_state.new_words)
 
     aksharas = [len(vk.get_akshara(word)) for word in words]
@@ -56,7 +58,11 @@ if st.session_state.file_selected:
     new_word = st.text_input("Enter the new word")
     if st.button("Add"):
 
-        if new_word in words:
+        if not is_word_in_dictionary(new_word):
+            st.error("Word not found in the dictionary")
+            time.sleep(5)
+
+        elif new_word in words:
             st.error("Word already present in the file")
             time.sleep(5)
         else:
