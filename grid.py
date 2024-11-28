@@ -42,5 +42,6 @@ def render_grid(word_length: int, max_attempts: int, helper_text: list):
                     grid_cell_markdown(akshara, status), unsafe_allow_html=True
                 )
 
-            # elif col_idx == word_length + 1:
-            #     col.markdown(helper_text[row], unsafe_allow_html=True)
+            elif col_idx == word_length + 1:
+                if row < len(helper_text):
+                    col.markdown(helper_text[row], unsafe_allow_html=True)
