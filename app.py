@@ -85,8 +85,8 @@ with st.expander("How to Play"):
 
 with st.expander("Colour Code"):
     st.write(
-        "1. The colour on the left side of the cell represents information about the Svara.\n"
-        "2. The colour on the right side of the cell represents information about the Vyanjana.\n"
+        "1. The colour on the left side of the cell represents information about the Vyanjana.\n"
+        "2. The colour on the right side of the cell represents information about the Svara.\n"
         "3. The possible cell colours are:\n"
         "   - Green: Svara or Vyanjana is correct and in the right position.\n"
         "   - Yellow: Svara or Vyanjana is correct but in the wrong position.\n"
