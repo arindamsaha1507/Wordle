@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from word_processor import Word
+from word_processor import Word, SVARAS
 
 
 class CellStatus(Enum):
@@ -94,3 +94,70 @@ class Compare:
                         vyanjana_status = CellStatus.PRESENT
 
             self.status[ii] = (vyanjana_status, svara_status)
+
+        self.degrade()
+
+    def degrade(self):
+        """Degrade the status to MISSING if required."""
+
+        word_svaras = self.word.svaras
+        word_vyanjanas = [v for v_list in self.word.vyanjanas for v in v_list]
+        word_varnas = word_svaras + word_vyanjanas
+        word_varna_count = {varna: word_varnas.count(varna) for varna in word_varnas}
+
+        current_status_dict = {}
+
+        for index, akshara in enumerate(self.guess.aksharas):
+
+            vinyaasa = self.guess.fetch_vinyaasa(akshara)
+
+            for v in vinyaasa:
+
+                if v in SVARAS:
+                    status = self.status[index][1]
+                else:
+                    status = self.status[index][0]
+
+                if v in current_status_dict:
+                    current_status_dict[v].append(status)
+                else:
+                    current_status_dict[v] = [status]
+
+        for key in current_status_dict:
+            current_status_dict[key] = (
+                current_status_dict[key].count(CellStatus.CORRECT)
+                + current_status_dict[key].count(CellStatus.MISSING)
+                + current_status_dict[key].count(CellStatus.PRESENT)
+            )
+
+        for key, value in current_status_dict.items():
+
+            if key in word_varna_count and value > word_varna_count[key]:
+
+                diff = value - word_varna_count[key]
+
+                index = 1 if key in SVARAS else 0
+
+                while diff > 0:
+
+                    diff = self.reduce(key, index, diff)
+
+    def reduce(self, key, index, diff):
+        """Reduce the status to MISSING if required."""
+
+        for ii, _ in enumerate(self.guess.aksharas):
+
+            if self.status[ii][index] == CellStatus.PRESENT and (
+                key in self.guess.vyanjanas[ii] or key == self.guess.svaras[ii]
+            ):
+
+                self.status[ii] = (
+                    (CellStatus.ABSENT if index == 0 else self.status[ii][0]),
+                    (CellStatus.ABSENT if index == 1 else self.status[ii][1]),
+                )
+                diff -= 1
+
+                if diff == 0:
+                    break
+
+        return diff
